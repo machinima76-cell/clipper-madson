@@ -1,0 +1,29 @@
+# Fly.io — deploy com Docker
+#   fly apps create madson-cobra-clipper
+#   fly volumes create media --region gru --size 2
+#   fly deploy
+app = "madson-cobra-clipper"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  HOST = "0.0.0.0"
+  CAPACITY = "3"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[mounts]]
+  source = "media"
+  destination = "/app/media"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1024mb"

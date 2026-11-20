@@ -1,0 +1,14 @@
+# Render Blueprint — deploy em 1 clique
+# 1. Suba este repositorio no GitHub/GitLab
+# 2. Em render.com -> New -> Blueprint -> selecione o repo
+services:
+  - type: web
+    name: madson-cobra-clipper
+    runtime: docker
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: CAPACITY
+        value: "3"
