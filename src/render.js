@@ -98,11 +98,11 @@ const SUBS = {
 
 function buildSrt(clip) {
   const lines = SUBS[clip.label] || ['[momento da live]', '[reação]', '[comemoração]'];
-  const chunk = 3;
+  const chunk = (clip.end - clip.start) / lines.length;
   let out = '';
   lines.forEach((text, i) => {
     const a = i * chunk;
-    const b = Math.min((i + 1) * chunk, Math.max(chunk, Math.floor(clip.duration || 9)));
+    const b = (i + 1) * chunk;
     out += `${i + 1}\n${srtTime(a)} --> ${srtTime(b)}\n${text}\n\n`;
   });
   return out;

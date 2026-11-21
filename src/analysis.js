@@ -1,6 +1,7 @@
 const { execFile } = require('child_process');
 const fs = require('fs');
 const config = require('./config');
+const clipWindow = require('./clip-window');
 
 function run(cmd, args, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -141,12 +142,8 @@ async function analyzeMedia(filePath) {
     if (t < 3 || t > duration - 4) continue;
     const loudHit = inRegions(t, loud, 1.5);
     const score = Math.round(Math.min(99, 58 + Math.min(34, ((sc.score - 0.28) / 0.6) * 34) + (loudHit ? 7 : 0)));
-    const start = Math.max(0, t - 2.5);
-    const end = Math.min(duration, t + 9.5);
-    if (end - start < 5) continue;
     candidates.push({
-      start: round1(start),
-      end: round1(end),
+      ...clipWindow(t, duration),
       score,
       reason: loudHit ? 'Corte de cena + pico de áudio (reação)' : 'Corte de cena',
       source: 'cena',
@@ -162,8 +159,7 @@ async function analyzeMedia(filePath) {
     const len = Math.min(9, r.end - r.start);
     if (len < 2) continue;
     candidates.push({
-      start: round1(Math.max(0, t - 1)),
-      end: round1(Math.min(duration, t + Math.max(6, len))),
+      ...clipWindow(t, duration),
       score: 62,
       reason: 'Pico de áudio (reação do streamer/chat)',
       source: 'audio',
@@ -182,8 +178,7 @@ async function analyzeMedia(filePath) {
       const nearScene = scenes.some((s) => Math.abs(s.t - w.t) < 4);
       if (nearScene) continue; // já coberto por um candidato de cena
       candidates.push({
-        start: round1(Math.max(0, w.t - 1)),
-        end: round1(Math.min(duration, w.t + 8)),
+        ...clipWindow(w.t, duration),
         score: Math.round(Math.min(96, Math.max(62, 64 + (w.rms - mean) * 2))),
         reason: 'Pico de energia de áudio (reação/hype)',
         source: 'pico',
@@ -194,7 +189,5 @@ async function analyzeMedia(filePath) {
   candidates.sort((a, b) => b.score - a.score);
   return { duration, candidates, loudRegions: loud };
 }
-
-function round1(v) { return Math.round(v * 10) / 10; }
 
 module.exports = { analyzeMedia, probeDuration };

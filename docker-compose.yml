@@ -8,6 +8,7 @@ services:
       PORT: "3000"
       HOST: "0.0.0.0"
       CAPACITY: "3"
+      CLIP_SECONDS: "${CLIP_SECONDS:-30}"
     volumes:
       - media:/app/media
       - data:/app/data

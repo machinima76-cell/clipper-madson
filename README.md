@@ -23,6 +23,7 @@ npm start
 |---|---|---|
 | `HOST` / `PORT` | `0.0.0.0` / `3000` | Endereço e porta do servidor |
 | `CAPACITY` | `3` | Número de análises simultâneas |
+| `CLIP_SECONDS` | `30` | Duração de cada clipe em segundos (inteiro positivo). Se a gravação for mais curta, o corte usa apenas a duração disponível. |
 | `YTDLP_BIN` | detecção automática | Executável usado para consultar e capturar lives |
 | `FFMPEG_BIN` / `FFPROBE_BIN` | `ffmpeg` / `ffprobe` | Executáveis de processamento |
 

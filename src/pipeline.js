@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('./config');
+const clipWindow = require('./clip-window');
 const { sleep, uid, clamp, formatDuration } = require('./util');
 const { PLATFORMS } = require('./status');
 const { getAdapter } = require('./adapters');
@@ -157,8 +158,7 @@ class Pipeline {
           if (!h.done && job.streamSeconds >= h.t) {
             h.done = true;
             this.registerMoment(job, {
-              start: Math.max(0, h.t - 3),
-              end: Math.min(duration, h.t + 9),
+              ...clipWindow(h.t, duration),
               score: h.score,
               label: h.label,
               reason: h.reason || 'Detectado pela IA durante a transmissão',
