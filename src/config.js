@@ -22,6 +22,7 @@ function findYtDlp() {
 
 const seconds = Number(process.env.CLIP_SECONDS);
 const config = {
+  clipBefore: 5,
   clipSeconds: Number.isSafeInteger(seconds) && seconds > 0 ? seconds : 30,
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',

@@ -129,6 +129,10 @@ async function analyzeMedia(filePath) {
   const duration = await probeDuration(filePath);
   if (!duration) throw new Error('Não foi possível ler a duração da mídia.');
 
+  if (duration < Math.min(10, config.clipSeconds)) {
+    return { duration, candidates: [], loudRegions: [] };
+  }
+
   const [scenes, silences, peaks] = await Promise.all([
     detectScenes(filePath),
     detectLoudRegions(filePath),
@@ -156,8 +160,6 @@ async function analyzeMedia(filePath) {
     if (t < 3 || t > duration - 4) continue;
     const nearScene = scenes.some((s) => Math.abs(s.t - t) < 3.5);
     if (nearScene) continue;
-    const len = Math.min(9, r.end - r.start);
-    if (len < 2) continue;
     candidates.push({
       ...clipWindow(t, duration),
       score: 62,

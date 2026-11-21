@@ -33,6 +33,8 @@ npm start
 - Clique em **Ver demonstração**. O Python sintetiza áudio e vídeo com momentos predefinidos; o painel acompanha o processamento e oferece os clipes para download individual ou em ZIP.
 - Para uma live real, informe o link de um canal ao vivo. A captura depende do acesso à plataforma. Depois que a captura termina, o FFmpeg analisa variações de cena e energia de áudio; não é um serviço externo de IA nem transcrição de fala. Se a captura não estiver disponível, envie uma gravação autorizada.
 
+Por padrão, o corte começa 5 segundos antes do destaque e dura 30 segundos. Nas bordas da mídia, o início é ajustado para preservar a duração. A análise de gravações e capturas ignora fontes com menos de 10 segundos (ou menos que `CLIP_SECONDS`, se configurado abaixo de 10). Na seleção final, se dois cortes compartilham mais de metade do menor trecho, fica o de maior pontuação.
+
 ## Estrutura
 
 - `server.js`: HTTP, WebSocket, upload e download em ZIP.

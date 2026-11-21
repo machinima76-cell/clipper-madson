@@ -20,6 +20,7 @@ class Pipeline {
     this.streamEnded = false;
     this.streamEndCode = null;
     this.demoPlan = null;
+    this.pendingRenders = [];
     this.lastGenAt = 0;
     this.pulse = 0;
     this.pulseStatus = null;
@@ -254,9 +255,9 @@ class Pipeline {
       return render.renderClip(job, clip, job.mediaPath).then(() => this.mgr.touch(job));
     }
     // render assíncrono (during capture) — não bloqueia o loop
-    render.renderClip(job, clip, job.mediaPath)
+    this.pendingRenders.push(render.renderClip(job, clip, job.mediaPath)
       .catch((e) => { clip.status = 'erro'; clip.error = e.message; })
-      .finally(() => this.mgr.touch(job));
+      .finally(() => this.mgr.touch(job)));
     job.status = 'gerando';
     this.pulse = 2;
   }
@@ -298,16 +299,32 @@ class Pipeline {
 
     // Seleção dos melhores momentos: remove inadequados, duplicados e respeita o limite
     const all = job.moments || [];
+    await Promise.all(this.pendingRenders);
     const before = all.length;
     let selected = all.filter((m) => m.score >= 58);
     selected.sort((a, b) => b.score - a.score);
     const dedup = [];
     for (const c of selected) {
-      if (!dedup.some((d) => !(c.end <= d.start || c.start >= d.end))) dedup.push(c);
+      const duplicate = dedup.some((d) => {
+        const overlap = Math.min(c.end, d.end) - Math.max(c.start, d.start);
+        return overlap > Math.min(c.end - c.start, d.end - d.start) / 2;
+      });
+      if (!duplicate) dedup.push(c);
     }
     selected = dedup.slice(0, job.maxClips).sort((a, b) => a.start - b.start);
     job.removedCount = Math.max(0, before - selected.length);
-    for (const m of all) m.selected = selected.some((s) => s.id === m.id);
+    const selectedIds = new Set(selected.map((m) => m.id));
+    for (const m of all) {
+      m.selected = selectedIds.has(m.id);
+      if (!m.selected) m.clipId = null;
+    }
+    // A seleção final também vale para os clipes antecipados da demonstração.
+    for (const clip of job.clips.filter((c) => !selectedIds.has(c.momentId))) {
+      for (const url of Object.values(clip.files || {})) {
+        if (url) await fs.promises.rm(path.join(config.mediaDir, url.slice('/media/'.length)), { force: true });
+      }
+    }
+    job.clips = job.clips.filter((c) => selectedIds.has(c.momentId));
 
     job.status = 'identificando';
     job.moments = [...all];
